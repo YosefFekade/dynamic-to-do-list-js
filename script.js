@@ -1,52 +1,109 @@
-// Setup Event Listener for Page Load
 document.addEventListener("DOMContentLoaded", function () {
 
-  // Select DOM Elements
-  const addButton = document.getElementById("add-task-btn");
-  const taskInput = document.getElementById("task-input");
-  const taskList = document.getElementById("task-list");
+ 
+    const addButton = document.getElementById("add-task-btn");
+    const taskInput = document.getElementById("task-input");
+    const taskList = document.getElementById("task-list");
+  
+   
+    function loadTasks() {
+      const tasksJSON = localStorage.getItem("tasks");
+      let tasks = [];
+  
+      if (tasksJSON) {
+        try {
+          tasks = JSON.parse(tasksJSON);
+        } catch (error) {
+          console.error("Error parsing tasks from Local Storage:", error);
+        }
+      }
 
-  // Create the addTask Function
-  function addTask() {
-    // Get and Trim User Input
-    const taskText = taskInput.value.trim();
-
-    // Check if Task is Empty
-    if (!taskText) {
-      alert("Please enter a task!");
-      return;
+      tasks.forEach(task => {
+        const listItem = document.createElement("li");
+        listItem.textContent = task;
+  
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "Remove";
+        removeButton.classList.add("remove-btn");
+        removeButton.onclick = function () {
+          taskList.removeChild(listItem);
+          removeTask(task);
+        };
+  
+        listItem.appendChild(removeButton);
+        taskList.appendChild(listItem);
+      });
     }
+  
 
-    // Create List Item and Remove Button
-    const listItem = document.createElement("li");
-    listItem.textContent = taskText;
+    function addTask() {
+      const taskText = taskInput.value.trim();
+  
 
-    const removeButton = document.createElement("button");
-    removeButton.textContent = "Remove";
-    removeButton.classList.add("remove-btn");
+      if (!taskText) {
+        alert("Please enter a task!");
+        return;
+      }
+  
 
-    // Add Remove Functionality to Button
-    removeButton.onclick = function () {
-      taskList.removeChild(listItem);
-    };
+      const listItem = document.createElement("li");
+      listItem.textContent = taskText;
+  
+      const removeButton = document.createElement("button");
+      removeButton.textContent = "Remove";
+      removeButton.classList.add("remove-btn");
+  
 
-    // Append Button and List Item
-    listItem.appendChild(removeButton);
-    taskList.appendChild(listItem);
+      removeButton.onclick = function () {
+        taskList.removeChild(listItem);
+        removeTask(taskText); 
+      };
+  
+      listItem.appendChild(removeButton);
+      taskList.appendChild(listItem);
+  
 
-    // Clear Input Field
-    taskInput.value = "";
-  }
-
-  // Attach Event Listeners
-  addButton.addEventListener("click", addTask);
-  taskInput.addEventListener("keypress", function (event) {
-    if (event.key === "Enter") {
-      addTask();
+      const tasks = getTasksFromLocalStorage();
+      tasks.push(taskText);
+      saveTasksToLocalStorage(tasks);
+      taskInput.value = "";
     }
+  
+    function getTasksFromLocalStorage() {
+      const tasksJSON = localStorage.getItem("tasks");
+      let tasks = [];
+  
+      if (tasksJSON) {
+        try {
+          tasks = JSON.parse(tasksJSON);
+        } catch (error) {
+          console.error("Error parsing tasks from Local Storage:", error);
+        }
+      }
+  
+      return tasks;
+    }
+  
+    function saveTasksToLocalStorage(tasks) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+  
+    function removeTask(taskText) {
+      const tasks = getTasksFromLocalStorage();
+      const taskIndex = tasks.indexOf(taskText);
+  
+      if (taskIndex !== -1) {
+        tasks.splice(taskIndex, 1);
+        saveTasksToLocalStorage(tasks);
+      }
+    }
+  
+    loadTasks();
+
+    addButton.addEventListener("click", addTask);
+    taskInput.addEventListener("keypress", function (event) {
+      if (event.key === "Enter") {
+        addTask();
+      }
+    });
   });
-
-  // Call addTask on DOMContentLoaded (Optional)
-  addTask(); // This can be removed if not needed
-
-});
